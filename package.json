@@ -1,0 +1,15 @@
+{
+  "name": "CGM",
+  "private": true,
+  "packageManager": "pnpm@10.33.4",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "pnpm biome check .",
+    "lint:fix": "pnpm biome check --write ."
+  },
+  "devDependencies": {
+    "turbo": "^2.10.0",
+    "@biomejs/biome": "^1.9.4"
+  }
+}
