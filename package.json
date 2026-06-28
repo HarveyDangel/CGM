@@ -2,14 +2,18 @@
   "name": "CGM",
   "private": true,
   "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": "^22"
+  },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "pnpm biome check .",
-    "lint:fix": "pnpm biome check --write ."
+    "lint:fix": "pnpm biome check --write .",
+    "format": "pnpm biome format --write ."
   },
   "devDependencies": {
     "turbo": "^2.10.0",
-    "@biomejs/biome": "^1.9.4"
+    "@biomejs/biome": "^2.2.0"
   }
 }
