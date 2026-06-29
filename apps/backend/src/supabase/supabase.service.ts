@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -29,13 +30,32 @@ export class SupabaseService {
   }
 
   async signUp(email: string, password: string) {
-    const { data, error } = await this.adminClient.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    });
-    if (error) throw new BadRequestException(error.message);
-    return data;
+    const { data: userData, error: createError } =
+      await this.adminClient.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      });
+    if (createError) {
+      if (createError.code === 'email_exists')
+        throw new ConflictException('A user with this email already exists');
+      throw new BadRequestException(createError.message);
+    }
+    const { data: signInData, error: signInError } =
+      await this.anonClient.auth.signInWithPassword({ email, password });
+    if (signInError) throw new UnauthorizedException(signInError.message);
+    return {
+      user: {
+        id: userData.user?.id,
+        email: userData.user?.email,
+      },
+      session: {
+        access_token: signInData.session?.access_token,
+        token_type: signInData.session?.token_type,
+        expires_in: signInData.session?.expires_in,
+        refresh_token: signInData.session?.refresh_token,
+      },
+    };
   }
 
   async signIn(email: string, password: string) {
@@ -43,8 +63,23 @@ export class SupabaseService {
       email,
       password,
     });
-    if (error) throw new UnauthorizedException(error.message);
-    return data;
+    if (error) {
+      if (error.code === 'invalid_credentials')
+        throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException(error.message);
+    }
+    return {
+      user: {
+        id: data.user?.id,
+        email: data.user?.email,
+      },
+      session: {
+        access_token: data.session?.access_token,
+        token_type: data.session?.token_type,
+        expires_in: data.session?.expires_in,
+        refresh_token: data.session?.refresh_token,
+      },
+    };
   }
 
   async getUser(token: string) {
