@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { redirect, useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useId, useState } from 'react';
+import { Suspense, useId, useRef, useState } from 'react';
 import { ApiError, type AuthResponse, api } from '../../lib/api';
 
 function RegisterForm() {
@@ -17,8 +17,13 @@ function RegisterForm() {
   const passwordId = useId();
   const confirmId = useId();
   const [error, setError] = useState('');
+  const isNavigating = useRef(false);
 
-  if (typeof window !== 'undefined' && localStorage.getItem('cgm_token')) {
+  if (
+    !isNavigating.current &&
+    typeof window !== 'undefined' &&
+    localStorage.getItem('cgm_token')
+  ) {
     redirect(redirectTo);
   }
 
@@ -50,6 +55,7 @@ function RegisterForm() {
       });
 
       localStorage.setItem('cgm_token', data.session.access_token);
+      isNavigating.current = true;
       router.push(redirectTo);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
