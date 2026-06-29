@@ -4,6 +4,16 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useId, useState } from 'react';
 import { ApiError, api } from '../../lib/api';
 
+type SignInResponse = {
+  user: { id: string; email: string };
+  session: {
+    access_token: string;
+    token_type: string;
+    expires_in: number;
+    refresh_token: string;
+  };
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -31,15 +41,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const data = await api.post<{
-        user: { id: string; email: string };
-        session: {
-          access_token: string;
-          token_type: string;
-          expires_in: number;
-          refresh_token: string;
-        };
-      }>('/auth/signin', { email, password });
+      const data = await api.post<SignInResponse>('/auth/signin', {
+        email,
+        password,
+      });
 
       localStorage.setItem('cgm_token', data.session.access_token);
       router.push('/dashboard');
@@ -70,6 +75,7 @@ export default function LoginPage() {
             <input
               id={emailId}
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
@@ -87,6 +93,7 @@ export default function LoginPage() {
             <input
               id={passwordId}
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
