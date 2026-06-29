@@ -25,10 +25,6 @@ export class SupabaseService {
     );
   }
 
-  get admin(): SupabaseClient {
-    return this.adminClient;
-  }
-
   async signUp(email: string, password: string) {
     const { data: userData, error: createError } =
       await this.adminClient.auth.admin.createUser({
@@ -41,20 +37,23 @@ export class SupabaseService {
         throw new ConflictException('A user with this email already exists');
       throw new BadRequestException(createError.message);
     }
-    const { data: signInData, error: signInError } =
-      await this.anonClient.auth.signInWithPassword({ email, password });
-    if (signInError) throw new UnauthorizedException(signInError.message);
+    const { data: signInData } = await this.anonClient.auth.signInWithPassword({
+      email,
+      password,
+    });
     return {
       user: {
         id: userData.user?.id,
         email: userData.user?.email,
       },
-      session: {
-        access_token: signInData.session?.access_token,
-        token_type: signInData.session?.token_type,
-        expires_in: signInData.session?.expires_in,
-        refresh_token: signInData.session?.refresh_token,
-      },
+      ...(signInData.session && {
+        session: {
+          access_token: signInData.session.access_token,
+          token_type: signInData.session.token_type,
+          expires_in: signInData.session.expires_in,
+          refresh_token: signInData.session.refresh_token,
+        },
+      }),
     };
   }
 
@@ -87,7 +86,7 @@ export class SupabaseService {
       data: { user },
       error,
     } = await this.anonClient.auth.getUser(token);
-    if (error) throw new UnauthorizedException(error.message);
-    return user;
+    if (error || !user) throw new UnauthorizedException(error?.message);
+    return { id: user.id, email: user.email };
   }
 }
