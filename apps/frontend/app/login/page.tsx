@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useId, useState } from 'react';
+import { redirect, useRouter } from 'next/navigation';
+import { useId, useState } from 'react';
 import { ApiError, api } from '../../lib/api';
 
 type SignInResponse = {
@@ -23,11 +23,9 @@ export default function LoginPage() {
   const passwordId = useId();
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (localStorage.getItem('cgm_token')) {
-      router.push('/dashboard');
-    }
-  }, [router]);
+  if (typeof window !== 'undefined' && localStorage.getItem('cgm_token')) {
+    redirect('/dashboard');
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
