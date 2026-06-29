@@ -4,8 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-// biome-ignore lint/style/useImportType: NestJS DI needs runtime import
-import { SupabaseService } from './supabase.service';
+import type { SupabaseService } from './supabase.service';
 
 @Injectable()
 export class SupabaseAuthGuard implements CanActivate {
