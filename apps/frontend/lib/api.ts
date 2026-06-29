@@ -1,6 +1,16 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
-class ApiError extends Error {
+export type AuthResponse = {
+  user: { id: string; email: string };
+  session: {
+    access_token: string;
+    token_type: string;
+    expires_in: number;
+    refresh_token: string;
+  };
+};
+
+export class ApiError extends Error {
   statusCode: number;
 
   constructor(statusCode: number, message: string) {
@@ -38,5 +48,3 @@ export const api = {
   post: <T>(path: string, body: unknown) => request<T>('POST', path, body),
   get: <T>(path: string) => request<T>('GET', path),
 };
-
-export { ApiError };

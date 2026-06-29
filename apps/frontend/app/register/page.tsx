@@ -1,16 +1,19 @@
 'use client';
 
+import Link from 'next/link';
 import { redirect, useRouter } from 'next/navigation';
 import { useId, useState } from 'react';
 import { ApiError, type AuthResponse, api } from '../../lib/api';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const emailId = useId();
   const passwordId = useId();
+  const confirmId = useId();
   const [error, setError] = useState('');
 
   if (typeof window !== 'undefined' && localStorage.getItem('cgm_token')) {
@@ -21,15 +24,25 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    if (!email || !password) {
-      setError('Email and password are required');
+    if (!email || !password || !confirmPassword) {
+      setError('All fields are required');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
       return;
     }
 
     setLoading(true);
 
     try {
-      const data = await api.post<AuthResponse>('/auth/signin', {
+      const data = await api.post<AuthResponse>('/auth/signup', {
         email,
         password,
       });
@@ -38,7 +51,11 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (err: unknown) {
       if (err instanceof ApiError) {
-        setError(err.message);
+        if (err.message.includes('already exists')) {
+          setError('An account with this email already exists');
+        } else {
+          setError(err.message);
+        }
       } else {
         setError('An unexpected error occurred. Please try again.');
       }
@@ -50,7 +67,9 @@ export default function LoginPage() {
   return (
     <div className="flex flex-1 items-center justify-center bg-zinc-50">
       <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-sm">
-        <h1 className="mb-6 text-2xl font-semibold text-zinc-900">Sign in</h1>
+        <h1 className="mb-6 text-2xl font-semibold text-zinc-900">
+          Create account
+        </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
@@ -81,10 +100,28 @@ export default function LoginPage() {
             <input
               id={passwordId}
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder="At least 6 characters"
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor={confirmId}
+              className="mb-1 block text-sm font-medium text-zinc-700"
+            >
+              Confirm password
+            </label>
+            <input
+              id={confirmId}
+              type="password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter your password"
               className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500"
             />
           </div>
@@ -103,12 +140,22 @@ export default function LoginPage() {
             {loading ? (
               <span className="flex items-center gap-2">
                 <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                Signing in...
+                Creating account...
               </span>
             ) : (
-              'Sign in'
+              'Create account'
             )}
           </button>
+
+          <p className="text-center text-sm text-zinc-500">
+            Already have an account?{' '}
+            <Link
+              href="/login"
+              className="font-medium text-zinc-900 underline underline-offset-2 hover:text-zinc-700"
+            >
+              Sign in
+            </Link>
+          </p>
         </form>
       </div>
     </div>
