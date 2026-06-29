@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { redirect, useRouter } from 'next/navigation';
-import { useId, useState } from 'react';
+import { redirect, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useId, useState } from 'react';
 import { ApiError, type AuthResponse, api } from '../../lib/api';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') ?? '/dashboard';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,7 +19,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
 
   if (typeof window !== 'undefined' && localStorage.getItem('cgm_token')) {
-    redirect('/dashboard');
+    redirect(redirectTo);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -48,7 +50,7 @@ export default function RegisterPage() {
       });
 
       localStorage.setItem('cgm_token', data.session.access_token);
-      router.push('/dashboard');
+      router.push(redirectTo);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         if (err.message.includes('already exists')) {
@@ -159,5 +161,13 @@ export default function RegisterPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
   );
 }

@@ -1,11 +1,13 @@
 'use client';
 
-import { redirect, useRouter } from 'next/navigation';
-import { useId, useState } from 'react';
+import { redirect, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useId, useState } from 'react';
 import { ApiError, type AuthResponse, api } from '../../lib/api';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') ?? '/dashboard';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -14,7 +16,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
 
   if (typeof window !== 'undefined' && localStorage.getItem('cgm_token')) {
-    redirect('/dashboard');
+    redirect(redirectTo);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,7 +37,7 @@ export default function LoginPage() {
       });
 
       localStorage.setItem('cgm_token', data.session.access_token);
-      router.push('/dashboard');
+      router.push(redirectTo);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -112,5 +114,13 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
