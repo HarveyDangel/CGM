@@ -16,6 +16,7 @@
 | `pnpm --filter backend migration:generate -- <name>` | Generate TypeORM migration |
 | `pnpm --filter backend migration:run` | Run pending migrations |
 | `pnpm --filter backend migration:revert` | Revert last migration |
+| `pnpm --filter backend seed` | Create/ensure dev user (`dev@cgm.local` / `devpassword123`) |
 
 ## Structure
 - `apps/frontend/` — Next.js 16 App Router + React 19 + Tailwind v4 (no test runner)
