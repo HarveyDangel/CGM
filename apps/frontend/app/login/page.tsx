@@ -2,17 +2,7 @@
 
 import { redirect, useRouter } from 'next/navigation';
 import { useId, useState } from 'react';
-import { ApiError, api } from '../../lib/api';
-
-type SignInResponse = {
-  user: { id: string; email: string };
-  session: {
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-    refresh_token: string;
-  };
-};
+import { ApiError, type AuthResponse, api } from '../../lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,7 +29,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const data = await api.post<SignInResponse>('/auth/signin', {
+      const data = await api.post<AuthResponse>('/auth/signin', {
         email,
         password,
       });

@@ -1,18 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { redirect, useRouter } from 'next/navigation';
 import { useId, useState } from 'react';
-import { ApiError, api } from '../../lib/api';
-
-type SignUpResponse = {
-  user: { id: string; email: string };
-  session: {
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-    refresh_token: string;
-  };
-};
+import { ApiError, type AuthResponse, api } from '../../lib/api';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -43,10 +34,15 @@ export default function RegisterPage() {
       return;
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const data = await api.post<SignUpResponse>('/auth/signup', {
+      const data = await api.post<AuthResponse>('/auth/signup', {
         email,
         password,
       });
@@ -55,7 +51,7 @@ export default function RegisterPage() {
       router.push('/dashboard');
     } catch (err: unknown) {
       if (err instanceof ApiError) {
-        if (err.message === 'A user with this email already exists') {
+        if (err.message.includes('already exists')) {
           setError('An account with this email already exists');
         } else {
           setError(err.message);
@@ -153,12 +149,12 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-zinc-500">
             Already have an account?{' '}
-            <a
+            <Link
               href="/login"
               className="font-medium text-zinc-900 underline underline-offset-2 hover:text-zinc-700"
             >
               Sign in
-            </a>
+            </Link>
           </p>
         </form>
       </div>
