@@ -31,6 +31,9 @@ async function bootstrap() {
   let userId: string;
   try {
     const result = await supabase.signUp(DEV_EMAIL, DEV_PASSWORD);
+    if (!result.user?.id) {
+      throw new Error('Signup returned no user id');
+    }
     userId = result.user.id;
     console.log('Supabase auth user created:', userId);
   } catch (err: unknown) {
@@ -40,6 +43,9 @@ async function bootstrap() {
         'Supabase auth user already exists, signing in to get user id...',
       );
       const result = await supabase.signIn(DEV_EMAIL, DEV_PASSWORD);
+      if (!result.user?.id) {
+        throw new Error('Signin returned no user id');
+      }
       userId = result.user.id;
     } else {
       throw err;

@@ -20,6 +20,11 @@ export class AuthService {
 
   async signUp(dto: SignUpDto) {
     const result = await this.supabase.signUp(dto.email, dto.password);
+    if (!result.user?.id || !result.user?.email) {
+      throw new InternalServerErrorException(
+        'Invalid response from auth provider',
+      );
+    }
     try {
       await this.profileRepository.save({
         id: result.user.id,
